@@ -23,7 +23,7 @@ def randomize(commander_dict, mastery_all_in=True):
     race = random.choice(['Terran', 'Protoss', 'Zerg'])
 
     # Mastery is different for the two cases
-    mastery = list()
+    mastery = []
     if mastery_all_in:
         for i in range(6):
             if i % 2 == 0:

@@ -13,7 +13,7 @@ class SystemInfo(QtWidgets.QWidget):
     def __init__(self, geometry=None, process_names=None, parent=None):
         super().__init__(parent)
 
-        if geometry == None:
+        if geometry is None:
             self.setGeometry(0, 0, 260, 400)
             sg = QtWidgets.QDesktopWidget().screenGeometry(0)
             self.move(sg.width() - self.width() - 10, sg.top() + 210)
@@ -124,7 +124,7 @@ class SystemInfo(QtWidgets.QWidget):
         self.la_cpu.setText('<b>CPU utilization</b>')
         self.layout.addWidget(self.la_cpu, 7, 2, 1, 2)
 
-        self.cpu_cores = dict()
+        self.cpu_cores = {}
         for idx in range(psutil.cpu_count()):
             self.cpu_cores[('label', idx)] = QtWidgets.QLabel()
             self.cpu_cores[('label', idx)].setText(f"CPU{idx}")
@@ -230,7 +230,7 @@ class SystemInfo(QtWidgets.QWidget):
             return
 
         # Get StarCraft 2 process if there is none
-        if self.sc2_process == None:
+        if self.sc2_process is None:
             self.sc2_idx_search += 1
 
             # Check only every few iterations for a process to prevent high overhead
@@ -245,11 +245,7 @@ class SystemInfo(QtWidgets.QWidget):
                         self.sc2_process = psutil.Process(self.sc2_pid)
                         logger.info(f'Found process {process.name()} | {pid}')
                         break
-                except psutil.NoSuchProcess:
-                    pass
-                except psutil.AccessDenied:
-                    pass
-                except PermissionError:
+                except (psutil.NoSuchProcess, psutil.AccessDenied, PermissionError):
                     pass
                 except AttributeError:
                     pass
@@ -257,9 +253,9 @@ class SystemInfo(QtWidgets.QWidget):
                     logger.info(f'Error when finding process\n{traceback.format_exc()}')
 
         # We haven't found StarCraft process running
-        if self.sc2_process == None:
+        if self.sc2_process is None:
             self.restart()
-            logger.debug(f"Debug: No SC2 process. Restarting.")
+            logger.debug("Debug: No SC2 process. Restarting.")
             return
         else:
             self.sc2_idx_search = -1

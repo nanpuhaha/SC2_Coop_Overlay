@@ -34,7 +34,7 @@ class TwitchBot:
             self.bank = self.banks.get('Default', list(self.banks.values())[0])
 
         self.commandNumber = random.randint(1, 1000000)
-        self.UnconfirmedCommands = dict()
+        self.UnconfirmedCommands = {}
         self.chat_log = truePath('ChatLog.txt')
         self.RUNNING = False
 
@@ -76,40 +76,32 @@ class TwitchBot:
 
     @staticmethod
     def loadingComplete(line):
-        if ("End of /NAMES list" in line):
-            return False
-        else:
-            return True
+        return "End of /NAMES list" not in line
 
     @staticmethod
     def getUser(line):
         separate = line.split(":", 2)
         try:
-            user = separate[1].split("!", 1)[0]
-            return user
+            return separate[1].split("!", 1)[0]
         except Exception:
             return None
 
     @staticmethod
     def getMessage(line):
         separate = line.split(":", 2)
-        message = separate[2]
-        return message
+        return separate[2]
 
     @staticmethod
     def console(line):
-        if "PRIVMSG" in line:
-            return False
-        else:
-            return True
+        return "PRIVMSG" not in line
 
     def sendMessage(self, message):
-        messageTemp = "PRIVMSG #" + self.channel + " :" + message
-        if not ('/color' in message):
+        messageTemp = f"PRIVMSG #{self.channel} :{message}"
+        if '/color' not in message:
             logger.info(f"(sent: {message})")
         try:
             self.s.send(f"{messageTemp}\r\n".encode("utf-8"))
-            if self.widget != None and not ('/color' in message):
+            if self.widget != None and '/color' not in message:
                 self.widget.add_message(self.bot_name, message)
         except BrokenPipeError:
             logger.error('BrokenPipeError. Opening socket again')
@@ -125,7 +117,7 @@ class TwitchBot:
             # Reset unconfirmed commands if it's a new game
             for child in root:
                 if child.attrib['name'] == "NewGame":
-                    self.UnconfirmedCommands = dict()
+                    self.UnconfirmedCommands = {}
                     root.remove(child)
                     break
 
@@ -155,7 +147,8 @@ class TwitchBot:
             self.commandNumber += 1
             msg = message.replace('"', "''")
             msg = html.escape(msg)  # convert & → &amp;
-            command_string = f'<Key name="{ptype} {str(self.commandNumber)} #{user}"><Value string="{msg}"/></Key>'
+            command_string = f'<Key name="{ptype} {self.commandNumber} #{user}"><Value string="{msg}"/></Key>'
+
             new_command_string = new_command_string + command_string
             self.UnconfirmedCommands[str(self.commandNumber)] = command_string
 
@@ -191,22 +184,20 @@ class TwitchBot:
         chatColor = 'green'
         chatColorError = 'red'
         CommandCooldown = 30
-        UserCooldown = dict()
+        UserCooldown = {}
         UsersToGreet = {u.lower() for u in set(self.greetings.keys())}
         recently_paused = False
 
         def user_on_cooldown(user):
             # Either no cooldown set, or user haven't started any cooldown
-            if CommandCooldown <= 0 or not (user in UserCooldown):
+            if CommandCooldown <= 0 or user not in UserCooldown:
                 return False
-            # User on cooldown
             elif (time.time() - UserCooldown[user]) < CommandCooldown:
-                self.sendMessage('/color ' + chatColorError)
+                self.sendMessage(f'/color {chatColorError}')
                 self.sendMessage(
                     f'/me Command not executed. {user} is on cooldown for the next {round(CommandCooldown - time.time() + UserCooldown[user],1)} seconds.'
                 )
                 return True
-            # User had cooldown, but it's over
             else:
                 return False
 
@@ -243,7 +234,7 @@ class TwitchBot:
 
                 # Get user, first and following words
                 user = self.getUser(line)
-                if user == None:
+                if user is None:
                     continue
 
                 message = self.getMessage(line)
@@ -255,11 +246,11 @@ class TwitchBot:
                     following_words = message.split(' ', 1)[1].rstrip()
                 except Exception:
                     following_words = ''
-                logger.info(user + ": " + message.rstrip())
+                logger.info(f"{user}: {message.rstrip()}")
 
                 # Commands
-                if "!gm" == first_word and user == self.channel:
-                    self.sendMessage('/color ' + chatColor)
+                if first_word == "!gm" and user == self.channel:
+                    self.sendMessage(f'/color {chatColor}')
                     if 'full' in following_words:
                         GMActive = True
                         GMActiveFull = True
@@ -273,47 +264,47 @@ class TwitchBot:
                         GMActiveFull = False
                         self.sendMessage('/me Partial game integration. !join and !message commands active')
 
-                if "!cooldown" == first_word and user == self.channel:
+                if first_word == "!cooldown" and user == self.channel:
                     try:
                         CommandCooldown = int(following_words)
                     except Exception:
                         CommandCooldown = 0
-                    CommandCooldown = 0 if CommandCooldown < 0 else CommandCooldown
-                    self.sendMessage('/color ' + chatColor)
+                    CommandCooldown = max(CommandCooldown, 0)
+                    self.sendMessage(f'/color {chatColor}')
                     self.sendMessage(f'Cooldown for viewer commands set to {CommandCooldown} seconds')
 
-                if "!bank" == first_word and user == self.channel:
+                if first_word == "!bank" and user == self.channel:
                     if following_words in self.banks:
                         self.bank = self.banks[following_words]
-                        self.sendMessage('/color ' + chatColor)
+                        self.sendMessage(f'/color {chatColor}')
                         self.sendMessage(f'/me Bank file changed to: {following_words}')
-                    elif following_words == "":
+                    elif not following_words:
                         self.bank = self.banks.get('Default', list(self.banks.values())[0])
-                        self.sendMessage('/color ' + chatColor)
-                        self.sendMessage(f'/me Bank file set to the default value')
+                        self.sendMessage(f'/color {chatColor}')
+                        self.sendMessage('/me Bank file set to the default value')
                     else:
                         bank_keys = str(list(self.banks.keys()))[1:-1].replace("'", "")
-                        self.sendMessage('/color ' + chatColorError)
+                        self.sendMessage(f'/color {chatColorError}')
                         self.sendMessage(f'/me Incorrect bank name, choose one: {bank_keys}')
 
-                if "!message" == first_word:
-                    self.sendMessage('/color ' + chatColor)
+                if first_word == "!message":
+                    self.sendMessage(f'/color {chatColor}')
                     if GMActive == False:
-                        self.sendMessage('/color ' + chatColorError)
+                        self.sendMessage(f'/color {chatColorError}')
                         self.sendMessage('/me Game integration inactive!')
                     else:
                         logger.info(f'Message sent: {user} {following_words}')
-                        self.sendGameMessage('message', user + ': ' + following_words, user)
+                        self.sendGameMessage('message', f'{user}: {following_words}', user)
 
-                if "!mutator" == first_word:
-                    self.sendMessage('/color ' + chatColorError)
+                if first_word == "!mutator":
+                    self.sendMessage(f'/color {chatColorError}')
                     if GMActiveFull == False:
                         self.sendMessage('/me Full game integration inactive!')
                     else:
                         mutator = following_words.lower().replace(' disable', '')
 
                         # Check if the name is correct
-                        if not (mutator in mutator_set):
+                        if mutator not in mutator_set:
                             possible_mutator_names = difflib.get_close_matches(mutator, mutator_set)
                             # If some matches, propose them
                             add_string = ""
@@ -324,28 +315,25 @@ class TwitchBot:
 
                             self.sendMessage(f'/me Incorrect mutator name ({mutator})! {add_string}')
 
-                        # Check if the mutator is banned
                         elif mutator.lower() in self.banned_mutators:
                             self.sendMessage('/me This mutator is banned from use and will not be activated!')
 
-                        # Check user cooldowns
                         elif user_on_cooldown(user):
                             pass
 
-                        # Enable/disable mutator
                         else:
                             logger.info('Mutator enabled/disabled: {following_words}')
                             self.sendGameMessage('mutator', following_words, user)
                             UserCooldown[user] = time.time()
 
-                if "!spawn" == first_word:
-                    self.sendMessage('/color ' + chatColorError)
+                if first_word == "!spawn":
+                    self.sendMessage(f'/color {chatColorError}')
                     if GMActiveFull == False:
                         self.sendMessage('/me Full game integration inactive!')
                     else:
                         unit = following_words.split(' ')[0]
                         # Check if correct name
-                        if not (unit.lower() in all_unit_ids):
+                        if unit.lower() not in all_unit_ids:
                             # Find similar unit ids
                             possible_unit_names = difflib.get_close_matches(unit, all_unit_ids)
                             add_string = ""
@@ -355,22 +343,19 @@ class TwitchBot:
                                 add_string = f'Did you mean: {possible_unit_names}?'
                             self.sendMessage(f'/me Incorrect unit name ({unit})! {add_string}')
 
-                        # Check if not banned
                         elif unit.lower() in self.banned_units:
                             self.sendMessage(f'/me Spawning {unit} is prohibited!')
 
-                        # Check user cooldown
                         elif user_on_cooldown(user):
                             pass
 
-                        # Spawn units
                         else:
                             self.sendGameMessage('spawn', following_words, user)
                             UserCooldown[user] = time.time()
                             logger.info(f'Unit spawned: {following_words}')
 
-                if "!resources" == first_word:
-                    self.sendMessage('/color ' + chatColorError)
+                if first_word == "!resources":
+                    self.sendMessage(f'/color {chatColorError}')
                     if GMActiveFull == False:
                         self.sendMessage('/me Full game integration inactive!')
                     elif user_on_cooldown(user):
@@ -380,16 +365,16 @@ class TwitchBot:
                         UserCooldown[user] = time.time()
                         logger.info(f'Resources given by {user}: {following_words}')
 
-                if "!join" == first_word:
-                    self.sendMessage('/color ' + chatColorError)
+                if first_word == "!join":
+                    self.sendMessage(f'/color {chatColorError}')
                     if GMActive == False:
                         self.sendMessage('/me Game integration inactive!')
                     else:
                         self.sendGameMessage('join', following_words, user)
                         logger.info(f'User joined the game: {user}')
 
-                if "!wave" == first_word:
-                    self.sendMessage('/color ' + chatColorError)
+                if first_word == "!wave":
+                    self.sendMessage(f'/color {chatColorError}')
                     if GMActiveFull == False:
                         self.sendMessage('/me Full game integration inactive!')
                     elif user_on_cooldown(user):
@@ -401,7 +386,7 @@ class TwitchBot:
 
                 # General responses configurable in the settings
                 if first_word[0] == "!" and first_word[1:] in self.responses.keys():
-                    self.sendMessage('/color ' + chatColor)
+                    self.sendMessage(f'/color {chatColor}')
                     self.sendMessage(self.responses[first_word[1:]])
 
                 # User greetings

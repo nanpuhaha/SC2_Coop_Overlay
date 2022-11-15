@@ -109,14 +109,14 @@ class AmonUnitStats(QtWidgets.QWidget):
     def update_data(self, unit_data, init=False):
         """ Updates widget based on new unit data"""
         if not hasattr(self, 'units'):
-            self.units = dict()
+            self.units = {}
 
         # Contains widgets for units that are not present in currently generated data
         self.hidden_units = set()
 
         # Either create widgets or update current ones
         for idx, unit in enumerate(unit_data):
-            if not unit in self.units:
+            if unit not in self.units:
                 self.units[unit] = AmonUnitStatsUnit(unit, unit_data[unit], parent=self.scroll_area_contents, bg=idx % 2)
                 self.scroll_area_contents_layout.addWidget(self.units[unit])
             else:
@@ -124,7 +124,7 @@ class AmonUnitStats(QtWidgets.QWidget):
 
         # Hide/show old widgets
         for unit in self.units:
-            if not unit in unit_data:
+            if unit not in unit_data:
                 self.units[unit].hide()
                 self.hidden_units.add(unit)
 
@@ -146,7 +146,10 @@ class AmonUnitStats(QtWidgets.QWidget):
         idx = 0
         for i in range(self.scroll_area_contents_layout.count()):
             widget = self.scroll_area_contents_layout.itemAt(i).widget()
-            if (init or widget.isVisible()) and not widget.search_name in {'sum', 'name'}:
+            if ((init or widget.isVisible())) and widget.search_name not in {
+                'sum',
+                'name',
+            }:
                 idx += 1
                 widget.update_bg(idx % 2)
 
@@ -154,7 +157,10 @@ class AmonUnitStats(QtWidgets.QWidget):
         """ Filters Amon's units based on text. Updates visibility and background."""
         text = self.ed_search.text().lower()
         for unit in self.units:
-            if text in self.units[unit].search_name and not unit in self.hidden_units:
+            if (
+                text in self.units[unit].search_name
+                and unit not in self.hidden_units
+            ):
                 self.units[unit].show()
             else:
                 self.units[unit].hide()
@@ -176,33 +182,40 @@ class AmonUnitStats(QtWidgets.QWidget):
             self.scroll_area_contents_layout.removeWidget(self.units[unit])
 
         # Sort
-        self.units = {k: v for k, v in sorted(self.units.items(), key=self.get_sortingf(trans_dict[sort_by]), reverse=reverse)}
+        self.units = dict(
+            sorted(
+                self.units.items(),
+                key=self.get_sortingf(trans_dict[sort_by]),
+                reverse=reverse,
+            )
+        )
+
 
         # Add widgets to the layout
         self.scroll_area_contents_layout.addWidget(self.units['sum'])
-        for unit in self.units:
+        for unit, value in self.units.items():
             if unit == 'sum':
                 continue
-            self.scroll_area_contents_layout.addWidget(self.units[unit])
+            self.scroll_area_contents_layout.addWidget(value)
 
         self.update_backgrounds()
 
     def get_sortingf(self, sortby):
         """ Returns None if sorting by name, otherwise custom sorting function """
-        if sortby == 'Name':
-            return None
-        return partial(self.sortingf, sortby=sortby)
+        return None if sortby == 'Name' else partial(self.sortingf, sortby=sortby)
 
     @staticmethod
     def sortingf(data, sortby=None):
         unit = data[0]
-        widget = data[1]
-
         if unit == 'sum':
             return 99999999999999
-        if isinstance(widget.unit_data[sortby], str):
-            return 9999999999999
-        return widget.unit_data[sortby]
+        widget = data[1]
+
+        return (
+            9999999999999
+            if isinstance(widget.unit_data[sortby], str)
+            else widget.unit_data[sortby]
+        )
 
 
 class AmonUnitStatsUnit(QtWidgets.QWidget):
@@ -235,7 +248,7 @@ class AmonUnitStatsUnit(QtWidgets.QWidget):
             self.line = Cline(self)
             self.line.setGeometry(QtCore.QRect(20, 24, 600, 1))
 
-        self.elements = dict()
+        self.elements = {}
         for idx, item in enumerate(unit_data):
             self.elements[item] = QtWidgets.QLabel(self) if unit != 'Name' else SortingQLabel(self, True)
             self.elements[item].setGeometry(QtCore.QRect(100 + 100 * (idx + 1), 0, 100, height))
@@ -245,10 +258,7 @@ class AmonUnitStatsUnit(QtWidgets.QWidget):
 
             if item == 'KD':
                 self.elements[item].setToolTip("Kill-death ratio")
-                self.elements[item].setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight)
-            else:
-                self.elements[item].setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight)
-
+            self.elements[item].setAlignment(QtCore.Qt.AlignVCenter | QtCore.Qt.AlignRight)
         self.update_data(unit_data)
         if unit == 'Name':
             self.elements['created'].activate()
@@ -257,7 +267,7 @@ class AmonUnitStatsUnit(QtWidgets.QWidget):
     def update_data(self, unit_data):
         """ Updates Amon's unit widget based on data provided"""
         self.unit_data = unit_data
-        for idx, item in enumerate(unit_data):
+        for item in unit_data:
             if item == 'KD':
                 if isinstance(unit_data[item], str):
                     self.elements[item].setText(unit_data[item])
@@ -294,7 +304,7 @@ class UnitStats(QtWidgets.QWidget):
         self.heading_ally.setText('<b>Ally</b>')
         self.heading_ally.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.elements = dict()
+        self.elements = {}
         for idx, commander in enumerate(sorted(unit_data['main'].keys())):
             self.elements[('button', 'main', commander)] = QtWidgets.QPushButton(self)
             self.elements[('button', 'main', commander)].setGeometry(QtCore.QRect(20, idx * 22 + 20, 100, 25))
@@ -315,18 +325,18 @@ class UnitStats(QtWidgets.QWidget):
         self.left_offset = 10
         self.top_offset = 40
 
-        self.heading = dict()
+        self.heading = {}
         for idx, item in enumerate(['Unit', 'Created', 'Freq', 'Lost', 'Lost%', 'Kills', 'K/D', 'Kills%']):
-            self.heading[item] = SortingQLabel(self.WD_units, True if item != 'Unit' else False)
+            self.heading[item] = SortingQLabel(self.WD_units, item != 'Unit')
             self.heading[item].setGeometry(
                 QtCore.QRect(self.left_offset + 20 if item == 'Unit' else self.left_offset + 120 + idx * 55, self.top_offset - 18, 60, 17))
             self.heading[item].setText(item)
             if item != 'Unit':
                 self.heading[item].setAlignment(QtCore.Qt.AlignRight)
             if item == 'Kills%':
-                self.heading[item].setToolTip(f"Typical percent of total kills")
+                self.heading[item].setToolTip("Typical percent of total kills")
             elif item == 'K/D':
-                self.heading[item].setToolTip(f"Kill / death ratio")
+                self.heading[item].setToolTip("Kill / death ratio")
             elif item == 'Lost%':
                 self.heading[item].setToolTip('Units lost / created')
             elif item == 'Freq':
@@ -344,7 +354,7 @@ class UnitStats(QtWidgets.QWidget):
 
         self.heading['Unit'].activate()
 
-        for idx, item in enumerate(['Unit', 'Created', 'Freq', 'Lost', 'Lost%', 'Kills', 'K/D', 'Kills%']):
+        for item in ['Unit', 'Created', 'Freq', 'Lost', 'Lost%', 'Kills', 'K/D', 'Kills%']:
             self.heading[item].clicked.connect(partial(self.update_units, caller=self.heading[item]))
 
     @staticmethod
@@ -352,7 +362,7 @@ class UnitStats(QtWidgets.QWidget):
         """ Sorting function for units"""
         if x[0] in ('sum', 'count'):
             return -1
-        elif isinstance(x[1][sortby], int) or isinstance(x[1][sortby], float):
+        elif isinstance(x[1][sortby], (int, float)):
             return x[1][sortby]
         return 0
 

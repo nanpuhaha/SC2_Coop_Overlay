@@ -46,7 +46,7 @@ class FastExpandSelector(QtWidgets.QWidget):
         layout.addWidget(self.pic)
 
         # Set up the window
-        self.setWindowTitle(f"Fast Expand Hints")
+        self.setWindowTitle("Fast Expand Hints")
         self.setWindowIcon(QtGui.QIcon(innerPath('src/OverlayIcon.ico')))
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.WindowDoesNotAcceptFocus
                             | QtCore.Qt.WindowTransparentForInput)
@@ -78,8 +78,15 @@ class FastExpandSelector(QtWidgets.QWidget):
         # Get a list of valid commanders to fast expand on map and generate a label and hook a hotkey
         labelString = ""
         for idx, commander in enumerate(commanderList):
-            labelString += "NUM" + str(9 - idx) + " - " + commander + "\r\n"
-            self.hotkeys.append(keyboard.add_hotkey("NUM " + str(9 - idx), self.selectionMade, args=["commander", commander.lower()]))
+            labelString += f"NUM{str(9 - idx)} - {commander}" + "\r\n"
+            self.hotkeys.append(
+                keyboard.add_hotkey(
+                    f"NUM {str(9 - idx)}",
+                    self.selectionMade,
+                    args=["commander", commander.lower()],
+                )
+            )
+
 
         # Add the Cancel option at the bottom and hook a hotkey
         labelString += "NUM0 - None"
@@ -105,8 +112,15 @@ class FastExpandSelector(QtWidgets.QWidget):
         # Get a list of valid commanders to fast expand on map and generate a label and hook a hotkey
         labelString = ""
         for idx, race in enumerate(raceList):
-            labelString += "NUM" + str(9 - idx) + " - " + race + "\r\n"
-            self.hotkeys.append(keyboard.add_hotkey("NUM " + str(9 - idx), self.selectionMade, args=["race", race.lower()]))
+            labelString += f"NUM{str(9 - idx)} - {race}" + "\r\n"
+            self.hotkeys.append(
+                keyboard.add_hotkey(
+                    f"NUM {str(9 - idx)}",
+                    self.selectionMade,
+                    args=["race", race.lower()],
+                )
+            )
+
 
         # Add the Cancel option at the bottom and hook a hotkey
         labelString += "NUM0 - None"
@@ -118,8 +132,7 @@ class FastExpandSelector(QtWidgets.QWidget):
 
     def showExpand(self):
         try:
-            baseURL = "https://starcraft2coop.com/images/assistant/"
-            filename = self.selectedCommander + "_"
+            filename = f"{self.selectedCommander}_"
             # Set up the file name to be called from starcraft2coop.com
             if self.selectedMap == "Chain of Ascension":
                 filename += f"coa_{self.selectedRace}_{self.playerPosition}.jpg"
@@ -133,7 +146,7 @@ class FastExpandSelector(QtWidgets.QWidget):
                 filename += f"tvp_{self.selectedRace}.jpg"
 
             # Get the image from the URL and display it
-            url = baseURL + filename
+            url = f"https://starcraft2coop.com/images/assistant/{filename}"
             req = urllib.request.Request(url, headers={'User-Agent': "Magic Browser"})
             data = urllib.request.urlopen(req).read()
             pixmap = QtGui.QPixmap()

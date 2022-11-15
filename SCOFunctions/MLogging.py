@@ -18,7 +18,7 @@ class logclass:
         self.level = level
         self.showdate = showdate
 
-        if not (level in self.LEVELS):
+        if level not in self.LEVELS:
             raise Exception(f'logging level has to be in {self.LEVELS}')
 
     def printsave(self, mtype, message):

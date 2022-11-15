@@ -52,7 +52,7 @@ def guarded_parse_replay_file(*args, **kwargs):
 @catch_exceptions(logger)
 def calculate_difficulty_data(ReplayData):
     """ Calculates the number of wins and losses for each difficulty"""
-    DifficultyData = dict()
+    DifficultyData = {}
 
     for r in ReplayData:
         diff = r.ext_difficulty
@@ -60,7 +60,7 @@ def calculate_difficulty_data(ReplayData):
         if '/' in diff:
             continue
         # Add empty dict
-        if not diff in DifficultyData:
+        if diff not in DifficultyData:
             DifficultyData[diff] = {'Victory': 0, 'Defeat': 0}
 
         DifficultyData[diff][r.result] += 1
@@ -74,11 +74,18 @@ def calculate_difficulty_data(ReplayData):
 @catch_exceptions(logger)
 def calculate_map_data(ReplayData):
     """ Calculates the number of wins and losses for each map """
-    MapData = dict()
+    MapData = {}
 
     for r in ReplayData:
-        if not r.map_name in MapData:
-            MapData[r.map_name] = {'Victory': 0, 'Defeat': 0, 'Fastest': {'length': 999999}, 'average_victory_time': list(), 'bonus': list()}
+        if r.map_name not in MapData:
+            MapData[r.map_name] = {
+                'Victory': 0,
+                'Defeat': 0,
+                'Fastest': {'length': 999999},
+                'average_victory_time': [],
+                'bonus': [],
+            }
+
 
         MapData[r.map_name][r.result] += 1
 
@@ -108,15 +115,16 @@ def calculate_map_data(ReplayData):
             MapData[r.map_name]['Fastest']['date'] = r.date
             MapData[r.map_name]['Fastest']['difficulty'] = r.ext_difficulty
 
-    for m in MapData:
+    for m, value in MapData.items():
         MapData[m]['frequency'] = (MapData[m]['Victory'] + MapData[m]['Defeat']) / len(ReplayData)
         MapData[m]['winrate'] = MapData[m]['Victory'] / (MapData[m]['Victory'] + MapData[m]['Defeat'])
-        if len(MapData[m]['average_victory_time']) > 0:
-            MapData[m]['average_victory_time'] = statistics.mean(MapData[m]['average_victory_time'])
-        else:
-            MapData[m]['average_victory_time'] = 999999
+        MapData[m]['average_victory_time'] = (
+            statistics.mean(MapData[m]['average_victory_time'])
+            if len(MapData[m]['average_victory_time']) > 0
+            else 999999
+        )
 
-        if len(MapData[m]['bonus']) > 0:
+        if len(value['bonus']) > 0:
             MapData[m]['bonus'] = sum(MapData[m]['bonus']) / len(MapData[m]['bonus'])
         else:
             MapData[m]['bonus'] = 0

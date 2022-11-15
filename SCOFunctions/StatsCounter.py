@@ -79,7 +79,7 @@ class StatsCounter:
         self.prestige = None
         self.enable_updates = False  # For MM maps enable ingame updating of data
         self.salvaged_units = []
-        self.unit_costs_cache = dict()  # Caching unit costs
+        self.unit_costs_cache = {}
         self.army_value_offset = 0  # Offset for army value (upgrades, mengsk infantry morphs)
         self.trooper_weapon_cost = (160, 0)
         self.tychus_gear_cost = (750, 1600)  # Normal gear cost, ultimate gear cost
@@ -240,16 +240,20 @@ class StatsCounter:
 
     def calculate_army_value(self) -> int:
         """ Sums army value for all units for the player"""
-        total = 0
-        for unit in self.unit_dict:
-            # Add the cost of all alive units
-            total += self.calculate_total_unit_value(unit, self.unit_cost(unit))
+        total = sum(
+            self.calculate_total_unit_value(unit, self.unit_cost(unit))
+            for unit in self.unit_dict
+        )
 
         # Add offset
         total += self.army_value_offset
 
         # Check for the first Tychus outlaw discout
-        if self.commander == 'Tychus' and not self.tychus_has_first_outlaw and len(set(self.unit_dict.keys()).intersection(outlaws)) > 0:
+        if (
+            self.commander == 'Tychus'
+            and not self.tychus_has_first_outlaw
+            and set(self.unit_dict.keys()).intersection(outlaws)
+        ):
             self.tychus_has_first_outlaw = True
         if self.tychus_has_first_outlaw and total > 600:
             total -= 600

@@ -15,7 +15,7 @@ def update_with_defaults(loaded: dict, default: dict):
 
     for key in default:
         # If there is a new key
-        if not key in loaded:
+        if key not in loaded:
             loaded[key] = default[key]
         # If dictionary recursively do the same
         if isinstance(default[key], dict):
@@ -36,7 +36,7 @@ class CSettings:
             'show_session': True,
             'show_random_on_overlay': False,
             'dark_theme': True,
-            'fast_expand': False, 
+            'fast_expand': False,
             'minimize_to_tray': True,
             'account_folder': None,
             'screenshot_folder': None,
@@ -52,8 +52,8 @@ class CSettings:
             'color_mastery': '#FFDC87',
             'aom_account': None,
             'aom_secret_key': None,
-            'player_notes': dict(),
-            'main_names': list(),
+            'player_notes': {},
+            'main_names': [],
             'list_games': 100,
             'right_offset': 0,
             'top_offset': 0,
@@ -65,7 +65,7 @@ class CSettings:
             'font_scale': 1,
             'check_for_multiple_instances': True,
             'subtract_height': 1,
-            'rng_choices': dict(),
+            'rng_choices': {},
             'performance_geometry': None,
             'performance_show': False,
             'performance_hotkey': None,
@@ -79,22 +79,16 @@ class CSettings:
                 'channel_name': '',
                 'bot_name': '',
                 'bot_oauth': '',
-                'bank_locations': {
-                    'Default': '',
-                    'Current': ''
-                },
+                'bank_locations': {'Default': '', 'Current': ''},
                 'responses': {
                     'commands': '!names, !syntax, !overlay, !join, !message, !mutator, !spawn, !wave, !resources',
-                    'syntax':
-                    '!spawn unit_type amount for_player (e.g. !spawn marine 10 2), !wave size tech (e.g. !wave 7 7), !resources minerals vespene for_player \
+                    'syntax': '!spawn unit_type amount for_player (e.g. !spawn marine 10 2), !wave size tech (e.g. !wave 7 7), !resources minerals vespene for_player \
                                                             (e.g. !resources 1000 500 2), !mutator mutator_name (e.g. !mutator avenger), !mutator mutator_name disable, !join player (e.g. !join 2).',
                     'overlay': 'https://github.com/FluffyMaguro/SC2_Coop_overlay',
                     'maguro': 'www.maguro.one',
-                    'names': 'https://www.maguro.one/p/unit-names.html'
+                    'names': 'https://www.maguro.one/p/unit-names.html',
                 },
-                'greetings': {
-                    'fluffymaguro': 'Hello Maguro!'
-                },
+                'greetings': {'fluffymaguro': 'Hello Maguro!'},
                 'banned_mutators': ['Vertigo', 'Propagators', 'Fatal Attraction'],
                 'banned_units': [
                     '',
@@ -102,8 +96,9 @@ class CSettings:
                 'host': 'irc.twitch.tv',
                 'port': 6667,
                 'auto_start': False,
-            }
+            },
         }
+
 
         # We don't need a deepcopy here. When resetting only the lower level gets changed.
         self.settings = self.default_settings.copy()

@@ -25,7 +25,7 @@ protocols = [
 def find_closest_values(number: int, llist: list, amount=2):
     """ Finds `amount` of closest numbers in a list to the provided number"""
     closest = {abs(p - number): p for p in llist}
-    closest = {k: v for k, v in sorted(closest.items())}
+    closest = dict(sorted(closest.items()))
     return list(closest.values())[:amount]
 
 

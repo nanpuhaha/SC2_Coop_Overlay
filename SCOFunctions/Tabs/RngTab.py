@@ -81,7 +81,7 @@ class RngTab(QtWidgets.QWidget):
         self.RNG_co_heading_prestige.setAlignment(QtCore.Qt.AlignCenter)
         self.RNG_co_heading_prestige.setText('<b>Prestige</b>')
 
-        self.RNG_co_dict = dict()
+        self.RNG_co_dict = {}
         for prest in {0, 1, 2, 3}:
             self.RNG_co_dict[('heading', prest)] = QtWidgets.QLabel(self.FR_RNG_Commanders)
             self.RNG_co_dict[('heading', prest)].setGeometry(QtCore.QRect(104 + prest * 30, 24, 300, 20))
@@ -115,7 +115,10 @@ class RngTab(QtWidgets.QWidget):
         self.FR_RNG_Result_CO = QtWidgets.QLabel(self.FR_RNG_Result)
         self.FR_RNG_Result_CO.setGeometry(QtCore.QRect(0, 20, self.FR_RNG_Result.width() - 20, 71))
         self.FR_RNG_Result_CO.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-        self.FR_RNG_Result_CO.setStyleSheet(f'font-weight: bold; font-size: 30px; color: white;')
+        self.FR_RNG_Result_CO.setStyleSheet(
+            'font-weight: bold; font-size: 30px; color: white;'
+        )
+
         shadow = QtWidgets.QGraphicsDropShadowEffect()
         shadow.setBlurRadius(1)
         shadow.setOffset(2)
@@ -152,7 +155,7 @@ class RngTab(QtWidgets.QWidget):
                     self.RNG_co_dict[(co, prest)].setChecked(choices[f"{co}_{prest}"])
 
     def get_choices(self):
-        out = dict()
+        out = {}
         for co in prestige_names:
             for prest in {0, 1, 2, 3}:
                 out[f"{co}_{prest}"] = self.RNG_co_dict[(co, prest)].isChecked()
@@ -168,8 +171,8 @@ class RngTab(QtWidgets.QWidget):
         """ Randomizes commander based on current selection """
 
         # Get values
-        mastery_all_in = True if self.CB_RNG_Mastery.currentText() == 'All points into one' else False
-        commander_dict = dict()
+        mastery_all_in = self.CB_RNG_Mastery.currentText() == 'All points into one'
+        commander_dict = {}
 
         found = False
         for co in prestige_names:
@@ -188,7 +191,7 @@ class RngTab(QtWidgets.QWidget):
         commander, prestige, mastery, mmap, race = randomize(commander_dict, mastery_all_in=mastery_all_in)
 
         # Update image
-        self.FR_RNG_Result_BG.setStyleSheet(f'background-color: black;')
+        self.FR_RNG_Result_BG.setStyleSheet('background-color: black;')
         image_file = truePath(f'Layouts/Commanders/{commander}.png')
         if os.path.isfile(image_file):
             pixmap = QtGui.QPixmap(image_file)
