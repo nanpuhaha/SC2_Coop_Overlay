@@ -35,7 +35,7 @@ class ChatMessage():
 
     def update(self, user, message, color):
         """ Update with new data"""
-        if user == None:
+        if user is None:
             return
         self.empty = False
         self.value = (user, message, color)
@@ -51,7 +51,7 @@ class ChatWidget(QtWidgets.QWidget):
     def __init__(self, chat_font_scale=1.3, geometry=None, parent=None):
         super().__init__(parent)
 
-        if geometry == None:
+        if geometry is None:
             self.setGeometry(700, 300, 500, 500)
         else:
             self.setGeometry(*geometry)
@@ -72,7 +72,7 @@ class ChatWidget(QtWidgets.QWidget):
         self.max_messages = 30
         self.colors = ['#7878FF', '#FF5858', 'yellow', 'purple', '#DAA520', '#94C237', 'pink', '#00E700', '#ED551E']
         self.color_index = 0
-        self.users = dict()
+        self.users = {}
 
         # Create scroll area so old messages can disappear on top
         self.scroll_area = QtWidgets.QScrollArea(self)
@@ -102,10 +102,10 @@ class ChatWidget(QtWidgets.QWidget):
 
         """
 
-        self.messages = list()
-        self.layouts = list()
+        self.messages = []
+        self.layouts = []
 
-        for i in range(self.max_messages):
+        for _ in range(self.max_messages):
             new_widget = ChatMessage(self.scroll_area_contents)
             new_layout = QtWidgets.QHBoxLayout()
             new_layout.setAlignment(QtCore.Qt.AlignLeft)
@@ -125,7 +125,7 @@ class ChatWidget(QtWidgets.QWidget):
 
     def get_user_color(self, user):
         """ Returns a color for a user. Assigns new if the user is new."""
-        if not user in self.users:
+        if user not in self.users:
             self.users[user] = self.colors[self.color_index]
             self.color_index += 1
             self.color_index = self.color_index if self.color_index < len(self.colors) else 0

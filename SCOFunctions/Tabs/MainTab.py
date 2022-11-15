@@ -36,7 +36,7 @@ class MainTab(QtWidgets.QWidget):
         self.CH_EnableLogging = QtWidgets.QCheckBox(self)
         self.CH_EnableLogging.setGeometry(QtCore.QRect(20, 4 * ch_distance, 230, 17))
         self.CH_EnableLogging.setText("Enable logging")
-        self.CH_EnableLogging.setToolTip(f"App logs will be saved into a text file")
+        self.CH_EnableLogging.setToolTip("App logs will be saved into a text file")
 
         # Show session hidden
         self.CH_ShowSession = QtWidgets.QCheckBox(self)
@@ -339,7 +339,7 @@ class MainTab(QtWidgets.QWidget):
         self.BT_Front_Donate.setGeometry(QtCore.QRect(x - 5, y, 140, 50))
         self.BT_Front_Donate.clicked.connect(self.paypal_clicked)
         self.BT_Front_Donate.setStyleSheet("QPushButton {border: 0px; background: transparent}")
-        self.BT_Front_Donate.setToolTip(f'Donate to support this app')
+        self.BT_Front_Donate.setToolTip('Donate to support this app')
 
         # Version
         self.LA_Version = QtWidgets.QLabel(self)

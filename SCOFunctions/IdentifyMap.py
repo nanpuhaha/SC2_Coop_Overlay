@@ -239,15 +239,14 @@ def identify_map(player_data: list) -> str:
     """ Identify a map based on the list of players """
     length = len(player_data)
     for m in map_checks:
-        found = True
         # First check if the length of players is correct
         if length != map_checks[m]['n']:
             continue
-        # Then go over two players, and check if both their names are in correct set of localized strings
-        for p in map_checks[m]['check']:
-            if not player_data[p]['name'] in map_checks[m]['check'][p]:
-                found = False
-                break
+        found = all(
+            player_data[p]['name'] in map_checks[m]['check'][p]
+            for p in map_checks[m]['check']
+        )
+
         if found:
             return m
 

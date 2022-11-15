@@ -9,7 +9,7 @@ class DebugWindow(QtWidgets.QWidget):
         super().__init__()
         self.p = parent
 
-        self.setWindowTitle(f'Debug window')
+        self.setWindowTitle('Debug window')
         self.setWindowIcon(QtGui.QIcon(innerPath('src/OverlayIcon.ico')))
         self.setGeometry(1200, 1000, 600, 60)
 

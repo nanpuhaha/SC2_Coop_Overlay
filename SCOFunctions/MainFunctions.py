@@ -4,6 +4,7 @@ sending info to the overlay with socket/JS. The oldest part of the app.
 
 Checking for new replays and games. Uploading replays to AOM. And more.
 """
+
 import os
 import json
 import time
@@ -28,8 +29,8 @@ lock = threading.Lock()
 logger = logclass('MAIN', 'INFO')
 initMessage = {'initEvent': True, 'colors': ['null', 'null', 'null', 'null'], 'duration': 60, 'show_charts': True}
 ReplayPosition = 0
-AllReplays = dict()
-player_winrate_data = dict()
+AllReplays = {}
+player_winrate_data = {}
 PLAYER_HANDLES = set()  # Set of handles of the main player
 PLAYER_NAMES = set()  # Set of names of the main player generated from handles and used in winrate notification
 most_recent_playerdata = None
@@ -37,7 +38,7 @@ CAnalysis = None
 APP_CLOSING = False
 session_games = {'Victory': 0, 'Defeat': 0}
 WEBPAGE = None
-RNG_COMMANDER = dict()
+RNG_COMMANDER = {}
 session = requests.Session()
 
 
@@ -65,7 +66,7 @@ def sendEvent(event, raw=False):
         OverlayMessages.append(event)
 
     # Send message directly thorugh javascript for the primary overlay.
-    if WEBPAGE == None:
+    if WEBPAGE is None:
         return
 
     elif raw:
@@ -124,8 +125,13 @@ def find_names_and_handles(ACCOUNTDIR, replays=None):
 
     for root, directories, files in os.walk(folder):
         for directory in directories:
-            if directory.count(
-                    '-') >= 3 and not r'\Banks' in root and not 'Crash' in directory and not 'Desync' in directory and not 'Error' in directory:
+            if (
+                directory.count('-') >= 3
+                and r'\Banks' not in root
+                and 'Crash' not in directory
+                and 'Desync' not in directory
+                and 'Error' not in directory
+            ):
                 handles.add(directory)
 
         for file in files:
@@ -133,11 +139,11 @@ def find_names_and_handles(ACCOUNTDIR, replays=None):
                 names.add(file.split('_')[0])
 
     # Fallbacks for finding player names: settings, replays, winrates
-    if len(names) == 0 and len(SM.settings['main_names']) > 0:
+    if not names and len(SM.settings['main_names']) > 0:
         names = set(SM.settings['main_names'])
         logger.info(f'No player names found, falling back to settings: {names}')
 
-    if len(names) == 0 and len(handles) > 0 and replays != None:
+    if not names and handles and replays != None:
         replays = [v.get('replay_dict', {'parser': None}).get('parser', None) for k, v in replays.items() if v != None]
         replays = [r for r in replays if r != None]
         names = names_fallback(handles, replays)
@@ -156,7 +162,7 @@ def names_fallback(handles, replays):
     snames = set()
 
     for r in replays:
-        if len(shandles) == 0:
+        if not shandles:
             break
         for p in {1, 2}:
             if r.players[p]['handle'] in shandles:
@@ -293,14 +299,13 @@ def check_replays():
                     continue
 
                 logger.info(f'New replay: {file_path}')
-                replay_dict = dict()
+                replay_dict = {}
                 try:
                     replay_dict = parse_and_analyse_replay(file_path, PLAYER_HANDLES)
 
                     # First check if any commander found
                     if not replay_dict.get('mainCommander') and not replay_dict.get('allyCommander'):
                         logger.info('No commanders found, wont show replay')
-                    # Then check if we have good
                     elif len(replay_dict) > 1:
                         logger.debug('Replay analysis result looks good, appending...')
                         with lock:
@@ -315,12 +320,15 @@ def check_replays():
                             out.update(RNG_COMMANDER)
 
                         out['fastest'] = False
-                        if CAnalysis is not None and not '[MM]' in file and replay_dict['parser']['isBlizzard']:
+                        if (
+                            CAnalysis is not None
+                            and '[MM]' not in file
+                            and replay_dict['parser']['isBlizzard']
+                        ):
                             out['fastest'] = CAnalysis.check_for_record(replay_dict)
 
                         sendEvent(out)
 
-                    # No output
                     else:
                         logger.error(f'ERROR: No output from replay analysis ({file})')
                     with lock:
@@ -336,7 +344,7 @@ def check_replays():
                         return replay_dict
 
         # Wait while checking if the thread should end early
-        for i in range(int(SM.settings['replay_check_interval'])):
+        for _ in range(int(SM.settings['replay_check_interval'])):
             time.sleep(0.5)
             if APP_CLOSING:
                 return None
@@ -512,7 +520,7 @@ def wait_for_wake():
         start = time.time()
 
         # Wait 5s
-        for i in range(20):
+        for _ in range(20):
             time.sleep(0.5)
             if APP_CLOSING:
                 return None
@@ -557,14 +565,9 @@ def check_for_new_game(progress_callback):
         try:
             # Request player data from the game
             resp = session.get('http://localhost:6119/game', timeout=6).json()
-            players = resp.get('players', list())
+            players = resp.get('players', [])
 
-            # Don't show in if all players are type user - versus game
-            all_users = True
-            for player in players:
-                if player['type'] != 'user':
-                    all_users = False
-
+            all_users = all(player['type'] == 'user' for player in players)
             if all_users:
                 continue
 
@@ -573,7 +576,7 @@ def check_for_new_game(progress_callback):
                 continue
 
             # If the last time is the same, then we are in menus. Otherwise in-game.
-            if last_game_time == None or resp['displayTime'] == 0:
+            if last_game_time is None or resp['displayTime'] == 0:
                 last_game_time = resp['displayTime']
                 continue
 
@@ -603,27 +606,30 @@ def check_for_new_game(progress_callback):
             # Find ally player and get your current player position
             player_names = set()
             for player in players:
-                if player['id'] in {1, 2} and not player['name'].lower() in test_names_against and player['type'] != 'computer':
+                if (
+                    player['id'] in {1, 2}
+                    and player['name'].lower() not in test_names_against
+                    and player['type'] != 'computer'
+                ):
                     player_names.add(player['name'])
                     player_position = 2 if player['id'] == 1 else 1
                     break
 
             # If we have players to show
-            if len(player_names) > 0:
+            if player_names:
                 # Get player winrate data
                 data = {p: player_winrate_data.get(p, [None]) for p in player_names}
                 # Get player notes
-                for player in data:
+                for player, value in data.items():
                     if player in SM.settings['player_notes']:
-                        data[player].append(SM.settings['player_notes'][player])
+                        value.append(SM.settings['player_notes'][player])
 
                 most_recent_playerdata = data
                 sendEvent({'playerEvent': True, 'data': update_last_game_time_difference(data)})
 
             # Identify map
             try:
-                map_found = identify_map(players)
-                if map_found:
+                if map_found := identify_map(players):
                     progress_callback.emit([map_found, str(player_position)])
                 else:
                     logger.error(f"Map not identified: {players}")
@@ -631,7 +637,7 @@ def check_for_new_game(progress_callback):
                 logger.error(traceback.format_exc())
 
         except requests.exceptions.ConnectionError:
-            logger.debug(f'SC2 request failed. Game not running.')
+            logger.debug('SC2 request failed. Game not running.')
 
         except json.decoder.JSONDecodeError:
             logger.info('SC2 request json decoding failed (SC2 is starting or closing)')

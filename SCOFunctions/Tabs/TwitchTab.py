@@ -104,13 +104,13 @@ class TwitchTab(QtWidgets.QWidget):
             for file in files:
                 if file == 'MMTwitchIntegration.SC2Bank':
                     path = os.path.join(root, file)
-                    if not path in self.bank_found_locations:
+                    if path not in self.bank_found_locations:
                         self.CB_twitch_banks.addItem(path)
                         self.bank_found_locations.add(path)
 
     def change_bank_names(self, CAnalysis):
         """ Changes bank names and returns a dictionary of name: path"""
-        out = dict()
+        out = {}
         for i in range(self.CB_twitch_banks.count()):
             bank_path = self.CB_twitch_banks.itemText(i)
             for handle in CAnalysis.name_handle_dict:

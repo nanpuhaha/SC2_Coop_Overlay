@@ -18,9 +18,7 @@ version_link = 'https://raw.githubusercontent.com/FluffyMaguro/SC2_Coop_overlay/
 
 
 def isWindows():
-    if os.name == 'nt':
-        return True
-    return False
+    return os.name == 'nt'
 
 
 # Use ctypes.wintypes and regirsty stuff only on windows platform
@@ -152,9 +150,7 @@ def archive_is_corrupt(archive):
     print(f'Checking: {archive}')
     test = zipfile.ZipFile(archive).testzip()
 
-    if test == None:
-        return False
-    return True
+    return test is not None
 
 
 def extract_archive(file, targetdir):
@@ -213,7 +209,11 @@ def get_account_dir(path=None):
     for drive in available_drives:
         for root, directories, files in os.walk(drive):
             for file in files:
-                if 'StarCraft II\\Accounts' in root and not '\\Sandbox\\' in root and file.endswith('.SC2Replay'):
+                if (
+                    'StarCraft II\\Accounts' in root
+                    and '\\Sandbox\\' not in root
+                    and file.endswith('.SC2Replay')
+                ):
                     account_path = os.path.join(root, file).split('StarCraft II\\Accounts')[0]
                     account_path += 'StarCraft II\\Accounts'
                     return os.path.abspath(account_path)

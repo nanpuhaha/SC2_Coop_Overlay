@@ -27,9 +27,7 @@ shutil.copy('Read me (Github).url', 'SCO.dist/Read me (Github).url')
 
 to_zip = []
 for root, directories, files in os.walk('SCO.dist'):
-    for file in files:
-        to_zip.append(os.path.join(root, file))
-
+    to_zip.extend(os.path.join(root, file) for file in files)
 print('Compressing files...')
 with ZipFile(file_name, 'w', compression=ZIP_BZIP2) as zip:
     for file in to_zip:

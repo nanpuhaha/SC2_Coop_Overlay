@@ -74,7 +74,7 @@ class UI_TabWidget(object):
         TabWidget.setWindowTitle(f"StarCraft Co-op Overlay (v{str(APPVERSION)[0]}.{str(APPVERSION)[1:]})")
         TabWidget.setWindowIcon(QtGui.QIcon(innerPath('src/OverlayIcon.ico')))
         TabWidget.setFixedSize(980, 610)
-        TabWidget.tray_icon.setToolTip(f'StarCraft Co-op Overlay')
+        TabWidget.tray_icon.setToolTip('StarCraft Co-op Overlay')
 
         self.signal_manager = Signal_Manager()
         self.signal_manager.showHidePerfOverlay.connect(self.show_hide_performance_overlay)
@@ -115,10 +115,13 @@ class UI_TabWidget(object):
         SM.load_settings(truePath('Settings.json'))
 
         # Check for multiple instances
-        if SM.settings['check_for_multiple_instances'] and HF.isWindows():
-            if HF.app_running_multiple_instances():
-                logger.error('App running at multiple instances. Closing!')
-                raise MultipleInstancesRunning
+        if (
+            SM.settings['check_for_multiple_instances']
+            and HF.isWindows()
+            and HF.app_running_multiple_instances()
+        ):
+            logger.error('App running at multiple instances. Closing!')
+            raise MultipleInstancesRunning
 
         # Update fix font size
         font = QtGui.QFont()
@@ -427,7 +430,7 @@ class UI_TabWidget(object):
             SM.settings['hotkey_newer'], SM.settings['hotkey_older'], SM.settings['hotkey_winrates']
         ]
 
-        hotkeys = [h for h in hotkeys if not h in {None, ''}]
+        hotkeys = [h for h in hotkeys if h not in {None, ''}]
         if len(hotkeys) > len(set(hotkeys)):
             self.sendInfoMessage('Warning: Overlapping hotkeys!', color=MColors.msg_failure)
 
@@ -440,7 +443,9 @@ class UI_TabWidget(object):
         # Compare
         changed_keys = set()
         for key in previous_settings:
-            if previous_settings[key] != SM.settings[key] and not (previous_settings[key] is None and SM.settings[key] == ''):
+            if previous_settings[key] != SM.settings[key] and (
+                previous_settings[key] is not None or SM.settings[key] != ''
+            ):
                 if key == 'aom_secret_key':
                     logger.info(f'Changed: {key}: ... → ...')
                 else:
@@ -514,20 +519,21 @@ class UI_TabWidget(object):
 
         # Init
         if previous_settings is None:
-            self.hotkey_hotkey_dict = dict()
+            self.hotkey_hotkey_dict = {}
             for key in hotkey_func_dict:
-                if not SM.settings[key] in {None, ''}:
+                if SM.settings[key] not in {None, ''}:
                     try:
                         self.hotkey_hotkey_dict[key] = keyboard.add_hotkey(SM.settings[key], hotkey_func_dict[key])
                     except Exception:
                         logger.error(traceback.format_exc())
                         self.sendInfoMessage(f'Failed to initialize hotkey ({key.replace("hotkey_","")})! Try a different one.',
                                              color=MColors.msg_failure)
-        # Update
         else:
             for key in hotkey_func_dict:
                 # Update current value if the hotkey changed
-                if previous_settings[key] != SM.settings[key] and not SM.settings[key] in {None, ''}:
+                if previous_settings[key] != SM.settings[key] and SM.settings[
+                    key
+                ] not in {None, ''}:
                     if key in self.hotkey_hotkey_dict:
                         keyboard.remove_hotkey(self.hotkey_hotkey_dict[key])
                     try:
@@ -536,7 +542,6 @@ class UI_TabWidget(object):
                     except Exception:
                         logger.error(f'Failed to change hotkey {key}\n{traceback.format_exc()}')
 
-                # Remove current hotkey no value
                 elif SM.settings[key] in {None, ''} and key in self.hotkey_hotkey_dict:
                     try:
                         keyboard.remove_hotkey(self.hotkey_hotkey_dict[key])
@@ -578,7 +583,7 @@ class UI_TabWidget(object):
     def findReplayFolder(self):
         """ Finds and sets account folder """
         dialog = QtWidgets.QFileDialog()
-        if not SM.settings['account_folder'] in {None, ''}:
+        if SM.settings['account_folder'] not in {None, ''}:
             dialog.setDirectory(SM.settings['account_folder'])
         dialog.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
 
@@ -807,7 +812,7 @@ class UI_TabWidget(object):
             keyboard._listener = keyboard._KeyboardListener()
             keyboard._listener.start_if_necessary()
             self.manage_keyboard_threads()
-            logger.info(f'Reseting keyboard thread')
+            logger.info('Reseting keyboard thread')
         except Exception:
             logger.error(f"Failed to reset keyboard\n{traceback.format_exc}")
 
@@ -835,7 +840,10 @@ class UI_TabWidget(object):
     def save_playernotes_to_settings(self):
         """ Saves player notes from UI to settings dict"""
         for player in self.TAB_Players.player_winrate_UI_dict:
-            if not self.TAB_Players.player_winrate_UI_dict[player].get_note() in {None, ''}:
+            if self.TAB_Players.player_winrate_UI_dict[player].get_note() not in {
+                None,
+                '',
+            }:
                 SM.settings['player_notes'][player] = self.TAB_Players.player_winrate_UI_dict[player].get_note()
             elif player in SM.settings['player_notes']:
                 del SM.settings['player_notes'][player]
@@ -899,7 +907,10 @@ class UI_TabWidget(object):
         logger.info(f'Identified map: {data}')
 
         # Don't proceed if the function disabled or not a valid map
-        if not SM.settings['fast_expand'] or not data[0] in FastExpandSelector.valid_maps:
+        if (
+            not SM.settings['fast_expand']
+            or data[0] not in FastExpandSelector.valid_maps
+        ):
             return
 
         if self.FastExpandSelector is None:
@@ -986,7 +997,11 @@ class UI_TabWidget(object):
 
             # Files smaller than 10kb consider as empty
             if os.path.getsize(path) < 10000:
-                self.sendInfoMessage(f'Show overlay before taking screenshot!', color=MColors.msg_failure)
+                self.sendInfoMessage(
+                    'Show overlay before taking screenshot!',
+                    color=MColors.msg_failure,
+                )
+
                 os.remove(path)
             else:
                 logger.info(f'Taking screenshot! {path}')
@@ -1039,12 +1054,10 @@ class UI_TabWidget(object):
         if hasattr(self, 'chat_widget') and not self.TAB_TwitchBot.ch_twitch_chat.isChecked():
             self.chat_widget.hide()
 
-        # Show
         elif hasattr(self, 'chat_widget') and self.TAB_TwitchBot.ch_twitch_chat.isChecked():
             self.chat_widget.show()
 
-        # Creates twitch chat widget if it's not created already
-        elif not hasattr(self, 'chat_widget'):
+        else:
             self.chat_widget = ChatWidget(geometry=SM.settings['chat_geometry'], chat_font_scale=SM.settings['chat_font_scale'])
 
             if hasattr(self, 'TwitchBot'):

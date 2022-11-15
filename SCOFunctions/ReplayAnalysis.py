@@ -115,19 +115,27 @@ def contains_skip_strings(pname):
 
 def upgrade_is_in_mastery_upgrades(upgrade):
     """ Checks if the upgrade is in mastery upgrades, if yes, returns the Commnader and upgrade index"""
-    for co in COMasteryUpgrades:
-        if upgrade in COMasteryUpgrades[co]:
-            return co, COMasteryUpgrades[co].index(upgrade)
-    return False, 0
+    return next(
+        (
+            (co, COMasteryUpgrades[co].index(upgrade))
+            for co in COMasteryUpgrades
+            if upgrade in COMasteryUpgrades[co]
+        ),
+        (False, 0),
+    )
 
 
 def prestige_talent_name(upgrade):
     """ Checks if the upgrade is in prestige upgrades. If yes, returns Prestige name"""
 
-    for co in prestige_upgrades:
-        if upgrade in prestige_upgrades[co]:
-            return prestige_upgrades[co][upgrade]
-    return None
+    return next(
+        (
+            prestige_upgrades[co][upgrade]
+            for co in prestige_upgrades
+            if upgrade in prestige_upgrades[co]
+        ),
+        None,
+    )
 
 
 def switch_names(pdict):
@@ -164,7 +172,7 @@ def switch_names(pdict):
                 for a in range(len(temp_dict[name])):
                     temp_dict[name][a] += pdict[key][a]
             else:
-                temp_dict[name] = list()
+                temp_dict[name] = []
                 for a in range(len(pdict[key])):
                     temp_dict[name].append(pdict[key][a])
 
@@ -176,14 +184,11 @@ def get_enemy_comp(identified_waves):
         Waves are identified as events where 6+ units were created at the same second. """
 
     # Each AI gets points for each matching wave
-    results = dict()
-    for AI in UnitCompDict:
-        results[AI] = 0
-
+    results = {AI: 0 for AI in UnitCompDict}
     # Lets go through our waves, compare them to known AI unit waves
     for iden_wave in identified_waves:
         types = set(identified_waves[iden_wave])
-        if len(types) == 0:
+        if not types:
             continue
 
         logger.debug(f'{"-"*40}\nChecking this wave type: {types}\n')
@@ -207,7 +212,7 @@ def get_enemy_comp(identified_waves):
     logger.debug(f'{"-"*40}\nAnd results are: {results}')
 
     # Return the comp with the most points
-    if len(results) > 0:
+    if results:
         logger.debug(f'Most likely AI: "{list(results.keys())[0]}" with {100*list(results.values())[0]/sum(results.values()):.1f}% points\n\n')
         return list(results.keys())[0]
     return 'Unidentified AI'

@@ -10,10 +10,10 @@ class StatsTab(QtWidgets.QWidget):
     def __init__(self, parent):
         super().__init__()
         self.p = parent
-        self.stats_maps_UI_dict = dict()
-        self.stats_region_UI_dict = dict()
-        self.stats_mycommander_UI_dict = dict()
-        self.stats_allycommander_UI_dict = dict()
+        self.stats_maps_UI_dict = {}
+        self.stats_region_UI_dict = {}
+        self.stats_mycommander_UI_dict = {}
+        self.stats_allycommander_UI_dict = {}
 
         self.FR_Stats = QtWidgets.QFrame(self)
         self.FR_Stats.setGeometry(QtCore.QRect(10, 0, 964, 151))

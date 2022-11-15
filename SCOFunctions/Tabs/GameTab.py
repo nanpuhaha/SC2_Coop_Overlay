@@ -11,7 +11,7 @@ class GameTab(QtWidgets.QWidget):
     def __init__(self, parent, TabWidget):
         super().__init__()
         self.p = parent
-        self.game_UI_dict = dict()
+        self.game_UI_dict = {}
 
         # Scroll
         self.SC_GamesScrollArea = QtWidgets.QScrollArea(self)
@@ -110,15 +110,16 @@ class GameTab(QtWidgets.QWidget):
         if self.p.CAnalysis is None:
             return
 
-        search_for = [i.replace('_', ' ') for i in self.ed_games_search.text().split()]
-        if len(search_for) == 0:
-            # Restore default
-            new_replays = self.p.CAnalysis.get_last_replays(SM.settings['list_games'])
-        else:
+        if search_for := [
+            i.replace('_', ' ') for i in self.ed_games_search.text().split()
+        ]:
             # Search for replays with strings in them
             new_replays = self.p.CAnalysis.search(*search_for)
             logger.info(f'Searching games with {search_for} | found {len(new_replays)} replays')
 
+        else:
+            # Restore default
+            new_replays = self.p.CAnalysis.get_last_replays(SM.settings['list_games'])
         # Hide current replays that are not in there
         for i in range(self.SC_GamesScrollAreaContentLayout.count()):
             widget = self.SC_GamesScrollAreaContentLayout.itemAt(i).widget()
@@ -158,7 +159,10 @@ class GameTab(QtWidgets.QWidget):
                 # Put the last player on top of player tab
                 for player in {1, 2}:
                     name = replay_dict['parser']['players'][player].get('name', '-')
-                    if not replay_dict['parser']['players'][player].get('handle', '-') in self.p.CAnalysis.main_handles:
+                    if (
+                        replay_dict['parser']['players'][player].get('handle', '-')
+                        not in self.p.CAnalysis.main_handles
+                    ):
                         self.p.TAB_Players.put_player_first(name)
                         break
             except Exception:

@@ -14,10 +14,7 @@ for item in ('Nap Time', 'Stone Zealots', 'Chaos Studios', 'Undying Evil', 'Afra
 def get_mutator(button, panel):
     """ Returns mutator based on button (41-83) and currently selected panel (1-4) """
     button = (button - 41) // 3 + (panel - 1) * 15
-    if 0 <= button < len(mutators_list):
-        return mutators_list[button]
-    else:
-        return None
+    return mutators_list[button] if 0 <= button < len(mutators_list) else None
 
 
 def identify_mutators(events, extension=True, mm=False, detailed_info=None):
@@ -25,8 +22,8 @@ def identify_mutators(events, extension=True, mm=False, detailed_info=None):
     Custom mutations works but random mutator isn't decided.
     Weekly mutations uses dictionary, so some values could be missing.
     Brutal+ works only for repeated games."""
-    mutators = list()
-    result = dict()
+    mutators = []
+    result = {}
 
     # MM maps
     if mm:
@@ -49,14 +46,18 @@ def identify_mutators(events, extension=True, mm=False, detailed_info=None):
 
     # Brutal+ mutators
     if not extension and detailed_info['m_syncLobbyState']['m_lobbyState']['m_slots'][0].get('m_brutalPlusDifficulty', 0) > 0:
-        for key in detailed_info['m_syncLobbyState']['m_lobbyState']['m_slots'][0]['m_retryMutationIndexes']:
-            if key > 0:
-                mutators.append(mutators_list_all[key - 1])
+        mutators.extend(
+            mutators_list_all[key - 1]
+            for key in detailed_info['m_syncLobbyState']['m_lobbyState'][
+                'm_slots'
+            ][0]['m_retryMutationIndexes']
+            if key > 0
+        )
 
     # Custom mutation
     if extension:
         # Get a list of dialog items used
-        actions = list()
+        actions = []
         offset = 0
         last_game_loop = None  # Save the last gameloop. Don't count multiple clicks done on the same loop, game will ignore them.
 
@@ -82,7 +83,9 @@ def identify_mutators(events, extension=True, mm=False, detailed_info=None):
             # Mutator clicked
             if 41 <= action <= 83:
                 new_mutator = get_mutator(action, panel)
-                if new_mutator != None and (not new_mutator in mutators or new_mutator == 'Random'):
+                if new_mutator != None and (
+                    new_mutator not in mutators or new_mutator == 'Random'
+                ):
                     mutators.append(new_mutator)
 
             # Panel Changed

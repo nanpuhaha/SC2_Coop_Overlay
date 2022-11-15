@@ -4,6 +4,7 @@ Run the pyinstaller, cleans up, zips files.
 
 """
 
+
 import json
 import os
 import shutil
@@ -32,9 +33,7 @@ shutil.move('dist/SCO', 'SCO')
 
 to_zip = []
 for root, directories, files in os.walk('SCO'):
-    for file in files:
-        to_zip.append(os.path.join(root, file))
-
+    to_zip.extend(os.path.join(root, file) for file in files)
 print('Compressing files...')
 with ZipFile(file_name, 'w', compression=ZIP_BZIP2) as zip:
     for file in to_zip:

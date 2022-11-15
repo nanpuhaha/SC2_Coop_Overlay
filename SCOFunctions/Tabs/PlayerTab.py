@@ -8,7 +8,7 @@ class PlayerTab(QtWidgets.QWidget):
         super().__init__()
         self.p = parent
         self.filter_players_running = False
-        self.player_winrate_UI_dict = dict()
+        self.player_winrate_UI_dict = {}
         self.last_ally_player = None
 
         # Controls
@@ -160,7 +160,7 @@ class PlayerTab(QtWidgets.QWidget):
         for idx, player in enumerate(winrate_data):
             if idx >= show_max:
                 break
-            if not player in self.player_winrate_UI_dict:
+            if player not in self.player_winrate_UI_dict:
                 self.player_winrate_UI_dict[player] = MUI.PlayerEntry(player,
                                                                       winrate_data[player],
                                                                       SM.settings['player_notes'].get(player, None),
@@ -178,7 +178,7 @@ class PlayerTab(QtWidgets.QWidget):
 
         # Hide players not in winrate data
         for player in self.player_winrate_UI_dict:
-            if not player in winrate_data:
+            if player not in winrate_data:
                 self.player_winrate_UI_dict[player].hide()
 
         self.SC_PlayersScrollAreaContents.setLayout(self.SC_PlayersScrollAreaContentsLayout)
@@ -206,7 +206,7 @@ class PlayerTab(QtWidgets.QWidget):
                     created = 0
 
                 # Create element if necessary and show
-                if not player in self.player_winrate_UI_dict:
+                if player not in self.player_winrate_UI_dict:
                     created += 1
                     self.player_winrate_UI_dict[player] = MUI.PlayerEntry(player,
                                                                         self.p.winrate_data[player],
@@ -220,7 +220,7 @@ class PlayerTab(QtWidgets.QWidget):
         for player, note in SM.settings['player_notes'].items():
             if text in note.lower() and idx < show_max:
                 # Create element if necessary and show
-                if not player in self.player_winrate_UI_dict:
+                if player not in self.player_winrate_UI_dict:
                     self.player_winrate_UI_dict[player] = MUI.PlayerEntry(player,
                                                                         self.p.winrate_data[player],
                                                                         SM.settings['player_notes'].get(player, None),
